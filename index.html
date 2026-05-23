@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JasaGaliKubur — Layanan Penggalian Makam Profesional & Terpercaya</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['Instrument Serif', 'serif'],
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #050505; color: #fff; overflow-x: hidden; }
+    .font-serif { font-family: 'Instrument Serif', serif; }
+
+    /* Noise texture */
+    .noise::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* Glass panel */
+    .glass-panel {
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* Gradient text */
+    .gradient-text {
+      background: linear-gradient(to bottom, #ffffff, #ffffff, #525252);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Float animation */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .animate-float { animation: float 6s ease-in-out infinite; }
+    .animate-float-delay { animation: float 6s ease-in-out 2s infinite; }
+
+    /* Scroll reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(2rem);
+      filter: blur(4px);
+      transition: all 700ms ease-out;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+
+    /* Smooth scroll */
+    html { scroll-behavior: smooth; }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #050505; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+    /* Hero bg glow */
+    .hero-glow {
+      position: absolute;
+      width: 40vw;
+      height: 40vw;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    /* Scan line */
+    @keyframes scan {
+      0% { top: -10%; opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { top: 110%; opacity: 0; }
+    }
+
+    /* Pulse ring */
+    @keyframes pulse-ring {
+      0% { transform: scale(1); opacity: 0.4; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+    .pulse-ring::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 1px solid #10b981;
+      animation: pulse-ring 2s ease-out infinite;
+    }
+
+    /* Counter animation */
+    .counter { font-variant-numeric: tabular-nums; }
+
+    /* FAQ */
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.4s ease;
+    }
+    .faq-answer.open {
+      max-height: 300px;
+      padding-top: 12px;
+      padding-bottom: 4px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: rgba(16,185,129,0.15);
+      border: 1px solid rgba(16,185,129,0.3);
+      backdrop-filter: blur(12px);
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      z-index: 10000;
+      transform: translateY(120%);
+      opacity: 0;
+      transition: all 400ms ease;
+    }
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Mobile nav */
+    .mobile-menu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+    .mobile-menu.open {
+      max-height: 400px;
+    }
+  </style>
+</head>
+<body class="noise">
+
+  <!-- ===== NAVBAR ===== -->
+  <nav class="fixed top-0 left-0 right-0 z-50 pt-4 px-4 md:pt-6 md:px-6">
+    <div class="max-w-7xl mx-auto">
+      <div class="glass-panel rounded-full px-4 md:px-6 py-3 flex items-center justify-between">
+        <!-- Logo -->
+        <a href="#" class="flex items-center gap-2 group">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 group-hover:bg-emerald-500/30 transition-colors duration-300">
+            <i data-lucide="trees" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <span class="text-sm font-semibold tracking-wide">JasaGaliKubur</span>
+        </a>
+
+        <!-- Desktop Links -->
+        <div class="hidden md:flex items-center gap-8">
+          <a href="#layanan" class="text-xs font-medium uppercase tracking-wide text-neutral-400 hover:text-white transition-colors duration-150">Layanan</a>
+          <a href="#alur" class="text-xs font-medium uppercase tracking-wide text-neutral-400 hover:text-white transition-colors duration-150">Alur</a>
+          <a href="#harga" class="text-xs font-medium uppercase tracking-wide text-neutral-400 hover:text-white transition-colors duration-150">Harga</a>
+          <a href="#testimoni" class="text-xs font-medium uppercase tracking-wide text-neutral-400 hover:text-white transition-colors duration-150">Testimoni</a>
+          <a href="#faq" class="text-xs font-medium uppercase tracking-wide text-neutral-400 hover:text-white transition-colors duration-150">FAQ</a>
+        </div>
+
+        <!-- CTA + Mobile Toggle -->
+        <div class="flex items-center gap-3">
+          <a href="#kontak" class="hidden sm:inline-flex items-center gap-2 bg-white text-black text-xs font-medium px-4 py-2 rounded-full hover:bg-neutral-200 transition-colors duration-150">
+            <i data-lucide="phone" class="w-3 h-3"></i>
+            Hubungi Kami
+          </a>
+          <button id="mobileToggle" class="md:hidden w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+            <i data-lucide="menu" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div id="mobileMenu" class="mobile-menu glass-panel rounded-2xl mt-2 px-4">
+        <div class="py-4 flex flex-col gap-3">
+          <a href="#layanan" class="text-sm text-neutral-400 hover:text-white transition-colors py-1">Layanan</a>
+          <a href="#alur" class="text-sm text-neutral-400 hover:text-white transition-colors py-1">Alur</a>
+          <a href="#harga" class="text-sm text-neutral-400 hover:text-white transition-colors py-1">Harga</a>
+          <a href="#testimoni" class="text-sm text-neutral-400 hover:text-white transition-colors py-1">Testimoni</a>
+          <a href="#faq" class="text-sm text-neutral-400 hover:text-white transition-colors py-1">FAQ</a>
+          <a href="#kontak" class="inline-flex items-center justify-center gap-2 bg-white text-black text-sm font-medium px-4 py-2.5 rounded-full mt-2">
+            <i data-lucide="phone" class="w-3 h-3"></i>
+            Hubungi Kami
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+
+  <!-- ===== HERO ===== -->
+  <section class="min-h-screen flex items-center justify-center relative overflow-hidden pt-32 pb-20 px-6">
+    <!-- Background Glows -->
+    <div class="hero-glow bg-emerald-500/20 -top-20 -left-20" style="position:absolute;"></div>
+    <div class="hero-glow bg-teal-500/10 -bottom-20 -right-20" style="position:absolute;"></div>
+
+    <div class="max-w-7xl mx-auto text-center relative z-10">
+      <!-- Badge -->
+      <div class="reveal inline-flex items-center gap-2 glass-panel rounded-full px-4 py-1.5 mb-8">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <span class="text-[10px] font-medium uppercase tracking-widest text-neutral-400">Siap Melayani 24 Jam</span>
+      </div>
+
+      <!-- Heading -->
+      <h1 class="reveal font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.9] tracking-tight mb-6" style="transition-delay:100ms;">
+        <span class="gradient-text">Layanan</span><br>
+        <span class="font-serif italic font-light text-neutral-500">Penggalian Makam</span><br>
+        <span class="gradient-text">Profesional</span>
+      </h1>
+
+      <!-- Subtitle -->
+      <p class="reveal text-base sm:text-lg md:text-xl font-light text-neutral-400 max-w-2xl mx-auto mb-10 leading-relaxed" style="transition-delay:200ms;">
+        Kami hadir di saat yang paling berat. Dengan penuh kehormatan, kecepatan, dan profesionalisme — memastikan prosesi berjalan lancar tanpa tambahan beban.
+      </p>
+
+      <!-- CTAs -->
+      <div class="reveal flex flex-col sm:flex-row items-center justify-center gap-4" style="transition-delay:300ms;">
+        <a href="#kontak" class="group inline-flex items-center gap-2 bg-white text-black text-xs font-medium px-6 py-3 rounded-full hover:bg-neutral-200 transition-colors duration-150 shadow-[0_0_10px_rgba(255,255,255,0.1)]">
+          <i data-lucide="phone-call" class="w-3.5 h-3.5"></i>
+          Panggil Sekarang
+          <i data-lucide="arrow-right" class="w-3 h-3 group-hover:translate-x-0.5 transition-transform duration-200"></i>
+        </a>
+        <a href="#layanan" class="inline-flex items-center gap-2 text-xs font-medium text-neutral-400 hover:text-white px-6 py-3 rounded-full border border-white/10 hover:border-white/20 transition-all duration-150">
+          <i data-lucide="info" class="w-3.5 h-3.5"></i>
+          Pelajari Layanan
+        </a>
+      </div>
+
+      <!-- Stats -->
+      <div class="reveal mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto" style="transition-delay:400ms;">
+        <div class="glass-panel rounded-xl p-4">
+          <div class="text-2xl md:text-3xl font-medium tracking-tight counter" data-target="1+">0</div>
+          <div class="text-[10px] uppercase tracking-widest text-neutral-500 mt-1">Makam Digali</div>
+        </div>
+        <div class="glass-panel rounded-xl p-4">
+          <div class="text-2xl md:text-3xl font-medium tracking-tight counter" data-target="0+">0</div>
+          <div class="text-[10px] uppercase tracking-widest text-neutral-500 mt-1">Tahun Pengalaman</div>
+        </div>
+        <div class="glass-panel rounded-xl p-4">
+          <div class="text-2xl md:text-3xl font-medium tracking-tight text-emerald-400">24/7</div>
+          <div class="text-[10px] uppercase tracking-widest text-neutral-500 mt-1">Selalu Siap</div>
+        </div>
+        <div class="glass-panel rounded-xl p-4">
+          <div class="text-2xl md:text-3xl font-medium tracking-tight counter" data-target="38">0</div>
+          <div class="text-[10px] uppercase tracking-widest text-neutral-500 mt-1">Wilayah Layanan</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+      <i data-lucide="chevron-down" class="w-4 h-4 text-neutral-600"></i>
+    </div>
+  </section>
+
+
+  <!-- ===== LAYANAN ===== -->
+  <section id="layanan" class="py-24 px-6 relative">
+    <div class="max-w-7xl mx-auto">
+      <!-- Section Header -->
+      <div class="reveal text-center mb-16">
+        <span class="text-[10px] font-medium uppercase tracking-widest text-emerald-400 mb-4 block">Layanan Kami</span>
+        <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl tracking-tight gradient-text mb-4">Apa Yang Kami Tawarkan</h2>
+        <p class="text-neutral-400 font-light max-w-xl mx-auto">Setiap layanan kami lakukan dengan penuh penghormatan, memperhatikan adat istiadat setempat, dan standar keamanan tertinggi.</p>
+      </div>
+
+      <!-- Services Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Service 1 -->
+        <div class="reveal glass-panel rounded-xl p-6 group hover:bg-white/[0.04] transition-colors duration-300">
+          <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
+            <i data-lucide="pickaxe" class="w-5 h-5 text-emerald-400"></i>
+          </div>
+          <h3 class="text-lg font-medium mb-2">Penggalian Kubur Baru</h3>
+          <p class="text-sm text-neutral-400 font-light leading-relaxed">Penggalian makam baru sesuai standar ukuran dengan kedalaman yang tepat, memperhatikan kondisi tanah dan peraturan setempat.</p>
+        </div>
+
+        <!-- Service 2 -->
+        <div class="reveal glass-panel rounded-xl p-6 group hover:bg-white/[0.04] transition-colors duration-300" style="transition-delay:100ms;">
+          <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
+            <i data-lucide="shovel" class="w-5 h-5 text-emerald-400"></i>
+          </div>
+          <h3 class="text-lg font-medium mb-2">Pembongkaran & Galian Ulang</h3>
+          <p class="text-sm text-neutral-400 font-light leading-relaxed">Layanan pembongkaran makam lama untuk pemakaman kembali (relokasi), dilakukan dengan hati-hati dan penuh penghormatan.</p>
+        </div>
+
+        <!-- Service 3 -->
+        <div class="reveal glass-panel rounded-xl p-6 group hover:bg-white/[0.04] transition-colors duration-300" style="transition-delay:200ms;">
+          <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
+            <i data-lucide="ruler" class="w-5 h-5 text-emerald-400"></i>
+          </div>
+          <h3 class="text-lg font-medium mb-2">Perencanaan & Pengukuran</h3>
+          <p class="text-sm text-neutral-400 font-light leading-relaxed">Survei lokasi, pengukuran lahan, dan perencanaan penataan makam keluarga sesuai dengan kebutuhan dan regulasi TPU.</p>
+        </div>
+
+        <!-- Service 4 -->
+        <div class="reveal glass-panel rounded-xl p-6 group hover:bg-white/[0.04] transition-colors duration-300">
+          <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
+            <i data-lucide="hard-hat" class="w-5 h-5 text-emerald-400"></i>
+          </div>
+          <h3 class="text-lg font-medium mb-2">Perkuatan Tanah & Konstruksi</h3>
+          <p class="text-sm text-neutral-400 font-light leading-relaxed">Penguatan dinding liang lahat untuk tanah yang kurang stabil, menggunakan bahan konstruksi ringan dan tahan lama.</p>
+        </div>
+
+        <!-- Service 5 -->
+        <div class="reveal glass-panel rounded-xl p-6 group hover:bg-white/[0.04] transition-colors duration-300" style="transition-delay:100ms;">
+          <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
+            <i data-lucide="truck" class="w-5 h-5 text-emerald-400"></i>
+          </div>
+          <h3 class="text-lg font-medium mb-2">Pengangkutan Tanah & Material</h3>
+          <p class="text-sm text-neutral-400 font-light leading-relaxed">Jasa pengangkutan sisa tanah galian dan material ke lokasi pembuangan yang ditentukan, termasuk penataan kembali area.</p>
+        </div>
+
+        <!-- Service 6 -->
+        <div class="reveal glass-panel rounded-xl p-6 group hover:bg-white/[0.04] transition-colors duration-300" style="transition-delay:200ms;">
+          <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
+            <i data-lucide="clock" class="w-5 h-5 text-emerald-400"></i>
+          </div>
+          <h3 class="text-lg font-medium mb-2">Layanan Darurat 24 Jam</h3>
+          <p class="text-sm text-neutral-400 font-light leading-relaxed">Siap datang kapan saja — siang atau malam. Kami memahami bahwa waktu tidak bisa menunggu di situasi seperti ini.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ===== KEUNGGULAN ===== -->
+  <section class="py-24 px-6 relative">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <!-- Left - Image -->
+        <div class="reveal relative">
+          <div class="relative rounded-2xl overflow-hidden aspect-[4/3]">
+            <img src="C:\Users\SRMA24KDR033\Downloads\kuburan-http-katnygjen-blogspot-com-57d35bcd347b61715bea3a6d.jpg" alt="Taman Pemakaman" class="w-full h-full object-cover opacity-70">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+            <div class="absolute bottom-6 left-6 right-6">
+              <div class="glass-panel rounded-xl p-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center relative pulse-ring">
+                    <i data-lucide="shield-check" class="w-5 h-5 text-emerald-400"></i>
+                  </div>
+                  <div>
+                    <div class="text-sm font-medium">Berpengalaman & Terpercaya</div>
+                    <div class="text-xs text-neutral-500">Baru buka sih(hehe)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Floating card -->
+          <div class="absolute -top-4 -right-4 glass-panel rounded-xl p-3 animate-float hidden md:block">
+            <div class="flex items-center gap-2">
+              <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-yellow-400"></i>
+              <span class="text-sm font-medium">-/5</span>
+              <span class="text-xs text-neutral-500">(- review)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right - Content -->
+        <div>
+          <div class="reveal">
+            <span class="text-[10px] font-medium uppercase tracking-widest text-emerald-400 mb-4 block">Mengapa Kami</span>
+            <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl tracking-tight gradient-text mb-6">Dipercaya Saat<br><span class="italic font-light text-neutral-500">Momen Terberat</span></h2>
+          </div>
+
+          <div class="space-y-6">
+            <div class="reveal flex gap-4 group" style="transition-delay:100ms;">
+              <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300">
+                <i data-lucide="heart-handshake" class="w-4 h-4 text-emerald-400"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-medium mb-1">Penuh Penghormatan</h4>
+                <p class="text-sm text-neutral-400 font-light leading-relaxed">Setiap pekerjaan kami lakukan dengan sikap sopan, menghormati keluarga yang berduka, dan menjaga kehormatan almarhum/ah.</p>
+              </div>
+            </div>
+
+            <div class="reveal flex gap-4 group" style="transition-delay:200ms;">
+              <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300">
+                <i data-lucide="zap" class="w-4 h-4 text-emerald-400"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-medium mb-1">Respon Cepat & Tepat Waktu</h4>
+                <p class="text-sm text-neutral-400 font-light leading-relaxed">Rata-rata tim kami tiba di lokasi dalam 1-3 jam setelah konfirmasi. Penggalian selesai sesuai jadwal yang disepakati.</p>
+              </div>
+            </div>
+
+            <div class="reveal flex gap-4 group" style="transition-delay:300ms;">
+              <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300">
+                <i data-lucide="file-check" class="w-4 h-4 text-emerald-400"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-medium mb-1">Sesuai Prosedur & Adat</h4>
+                <p class="text-sm text-neutral-400 font-light leading-relaxed">Mengikuti regulasi TPU setempat serta menghormati adat istiadat dan kepercayaan keluarga dalam setiap prosesi.</p>
+              </div>
+            </div>
+
+            <div class="reveal flex gap-4 group" style="transition-delay:400ms;">
+              <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300">
+                <i data-lucide="badge-indian-rupee" class="w-4 h-4 text-emerald-400"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-medium mb-1">Harga Transparan</h4>
+                <p class="text-sm text-neutral-400 font-light leading-relaxed">Tidak ada biaya tersembunyi. Harga sudah termasuk peralatan, tenaga kerja, dan penataan ulang area galian.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ===== ALUR KERJA ===== -->
+  <section id="alur" class="py-24 px-6 relative">
+    <div class="max-w-7xl mx-auto">
+      <div class="reveal text-center mb-16">
+        <span class="text-[10px] font-medium uppercase tracking-widest text-emerald-400 mb-4 block">Alur Kerja</span>
+        <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl tracking-tight gradient-text mb-4">Bagaimana Prosesnya</h2>
+        <p class="text-neutral-400 font-light max-w-xl mx-auto">Dari panggilan hingga selesai — kami sederhanakan agar keluarga bisa fokus pada hal yang lebih penting.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
+        <!-- Connection line (desktop only) -->
+        <div class="hidden lg:block absolute top-10 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+        <!-- Step 1 -->
+        <div class="reveal text-center relative">
+          <div class="w-20 h-20 rounded-2xl glass-panel flex items-center justify-center mx-auto mb-5 relative z-10">
+            <i data-lucide="phone-call" class="w-8 h-8 text-emerald-400"></i>
+          </div>
+          <div class="text-[10px] font-medium uppercase tracking-widest text-emerald-400 mb-2">Langkah 1</div>
+          <h3 class="text-base font-medium mb-2">Hubungi Kami</h3>
+          <p class="text-xs text-neutral-500 font-light leading-relaxed">Telepon atau WhatsApp. Beritahu lokasi, waktu, dan jenis layanan yang dibutuhkan.</p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="reveal text-center relative" style="transition-delay:100ms;">
+          <div class="w-20 h-20 rounded-2xl glass-panel flex items-center justify-center mx-auto mb-5 relative z-10">
+            <i data-lucide="map-pin" class="w-8 h-8 text-emerald-400"></i>
+          </div>
+          <div class="text-[10px] font-medium uppercase tracking-widest text-emerald-400 mb-2">Langkah 2</div>
+          <h3 class="text-base font-medium mb-2">Survei & Konfirmasi</h3>
+          <p class="text-xs text-neutral-500 font-light leading-relaxed">Tim kami mengecek lokasi, mengukur, dan mengonfirmasi harga serta jadwal kepada keluarga.</p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="reveal text-center relative" style="transition-delay:200ms;">
+          <div class="w-20 h-20 rounded-2xl glass-panel flex items-center justify-center mx-auto mb-5 relative z-10">
+            <i data-lucide="pickaxe" class="w-8 h-8 text-emerald-400"></i>
+          </div>
+          <div class="text-[10px] font-medium uppercase tracking-widest text-emerald-400 mb-2">Langkah 3</div>
+          <h3 class="text-base font-medium mb-2">Proses Penggalian</h3>
+          <p class="text-xs text-neutral-500 font-light leading-relaxed">Tim berpengalaman melakukan penggalian dengan peralatan lengkap sesuai standar.</p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="reveal text-center relative" style="transition-delay:300ms;">
+          <div class="w-20 h-20 rounded-2xl glass-panel flex items-center justify-center mx-auto mb-5 relative z-10">
+            <i data-lucide="check-circle-2" class="w-8 h-8 text-emerald-400"></i>
+          </div>
+          <div class="text-[10px] font-medium uppercase tracking-widest text-emerald-400 mb-2">Langkah 4</div>
+          <h3 class="text-base font-medium mb-2">Serah Terima</h3>
+          <p class="text-xs text-neutral-500 font-light leading-relaxed">Area ditata rapi, pengecekan bersama keluarga, dan serah terima selesai.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ===== HARGA ===== -->
+  <section id="harga" class="py-24 px-6 relative">
+    <div class="max-w-7xl mx-auto">
+      <div class="reveal text-center mb-16">
+        <span class="text-[10px] font-medium uppercase tracking-widest text-emerald-400 mb-4 block">Harga</span>
+        <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl tracking-tight gradient-text mb-4">Paket Layanan</h2>
+        <p class="text-neutral-400 font-light max-w-xl mx-auto">Harga transparan, tanpa biaya tersembunyi. Setiap paket sudah termasuk peralatan dan tenaga kerja.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <!-- Basic -->
+        <div class="reveal glass-panel rounded-xl p-6 flex flex-col hover:bg-white/[0.04] transition-colors duration-300">
+          <div class="text-[10px] font-medium uppercase tracking-widest text-neutral-500 mb-2">Dasar</div>
+          <h3 class="text-xl font-medium mb-1">Penggalian Standar</h3>
+          <p class="text-xs text-neutral-500 mb-6">Untuk kuburan baru ukuran standar dewasa</p>
+          <div class="mb-6">
+            <span class="text-3xl font-medium tracking-tight">Rp 1.5jt</span>
+            <span class="text-xs text-neutral-500 ml-1">mulai dari</span>
+          </div>
+          <ul class="space-y-3 mb-8 flex-1">
+            <li class="flex items-center gap-2 text-sm text-neutral-400 font-light">
+              <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+              Galian ukuran 200×80 cm
+            </li>
+            <li class="flex items-center gap-2 text-sm text-neutral-400 font-light">
+              <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+              Kedalaman 150 cm
+            </li>
+            <li class="flex items-center gap-2 text-sm text-neutral-400 font-light">
+              <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+              Penataan tanah galian
+            </li>
+            <li class="flex items-center gap-2 text-sm text-neutral-400 font-light">
+              <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+              2 pekerja
+            </li>
+            <li class="flex items-center gap-2 text-sm text-neutral-500 font-light">
+              <i data-lucide="minus" class="w-4 h-4 text-neutral-600 flex-shrink-0"></i>
+              Perkuatan dinding
+            </li>
+          </ul>
+          <a href="#kontak" class="inline-flex items-center justify-center gap-2 text-xs font-medium text-neutral-300 px-4 py-2.5 rounded-full border border-white/10 hover:border-white/20 hover:bg-white/[0.04] transition-all duration-150 w-full">
+            Pilih Paket
+          </a>
+        </div>
+
+        <!-- Popular -->
+        <div class="reveal glass-panel rounded-xl p-6 flex flex-col relative border-emerald-500/30 hover:bg-white/[0.04] transition-colors duration-300" style="transition-delay:100ms;">
+          <!-- Popular badge -->
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-500 text-black text-[10px] font-semibold uppercase tracking-widest px-3 py-1 rounded-full">
+            Paling Diminati
+          </div>
+          <div class="text-[10px] font-medium uppercase tracking-widest text-emerald-400 mb-2 mt-1">Premium</div>
+          <h3 class="text-xl font-medium mb-1">Galian Lengkap</h3>
+          <p class="text-xs text-neutral-500 mb-6">Paket lengkap termasuk perkuatan & finishing</p>
+          <div class="mb-6">
+            <span class="text-3xl font-medium tracking-tight">Rp 2.8jt</span>
+            <span class="text-xs text-neutral-500 ml-1">mulai dari</span>
+          </div>
+          <ul class="space-y-3 mb-8 flex-1">
+            <li class="flex items-center gap-2 text-sm text-neutral-400 font-light">
+              <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+              Galian ukuran 200×80 cm
+            </li>
+            <li class="flex items-center gap-2 text-sm text-neutral-400 font-light">
+              <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+              Kedalaman 150-180 cm
+            </li>
+            <li class="flex items-center gap-2 text-sm text-neutral-400 font-light">
+              <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+              Perkuatan dinding batako
+            </li>
+            <li class="flex items-center gap-2 text-sm text-neutral-400 font-light">
+              <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+              Penataan & perataan area
+            </li>
+            <li class="flex items-center gap-2 text-sm text-neutral-400 font-light">
+              <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+              3-4 pekerja
+            </li>
+          </ul>
+          <a href="#kontak" class="inline-flex items-center justify-center gap-2 bg-white text-black text-xs font-medium px-4 py-2.5 rounded-full hover:bg-neutral-200 transition-colors duration-150 w-full">
+            Pilih Paket
+          </a>
+        </div>
+
+        <!-- Custom -->
+        <div class="reveal glass-panel rounded-xl p-6 flex flex-col hover:bg-white/[0.04] transition-colors duration-300" style="transition-delay:200ms;">
+          <div class="text-[10px] font-medium uppercase tracking-widest text-neutral-500 mb-2">Khusus</div>
+          <h3 class="text-xl font-medium mb-1">Paket Keluarga</h3>
+          <p class="text-xs text-neutral-500 mb-6">Untuk makam keluarga besar atau kebutuhan khusus</p>
+          <div class="mb-6">
+            <span class="text-3xl font-medium tracking-tight">Custom</span>
+          </div>
+          <ul class="space-y-3 mb-8 flex-1">
+            <li class="flex items-center gap-2 text-sm text-neutral-400 font-light">
+              <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+              Ukuran & kedalaman custom
+            </li>
+            <li class="flex items-center gap-2 text-sm text-neutral-400 font-light">
+              <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+              Konstruksi penuh (kijing, nisan)
+            </li>
+            <li class="flex items-center gap-2 text-sm text-neutral-400 font-light">
+              <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+              Penggalian multiple liang
+            </li>
+            <li class="flex items-center gap-2 text-sm text-neutral-400 font-light">
+              <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+              Konsultasi desain makam
+            </li>
+            <li class="flex items-center gap-2 text-sm text-neutral-400 font-light">
+              <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+              Tim sesuai kebutuhan
+            </li>
+          </ul>
+          <a href="#kontak" class="inline-flex items-center justify-center gap-2 text-xs font-medium text-neutral-300 px-4 py-2.5 rounded-full border border-white/10 hover:border-white/20 hover:bg-white/[0.04] transition-all duration-150 w-full">
+            Konsultasi Gratis
+          </a>
+        </div>
+      </div>
+
+      <p class="reveal text-center text-xs text-neutral-600 mt-8">* Harga dapat berbeda tergantung lokasi, kondisi tanah, dan tingkat kesulitan. Hubungi kami untuk penawaran pasti.</p>
+    </div>
+  </section>
+
+
+  <!-- ===== TESTIMONI ===== -->
+  <section id="testimoni" class="py-24 px-6 relative">
+    <div class="max-w-7xl mx-auto">
+      <div class="reveal text-center mb-16">
+        <span class="text-[10px] font-medium uppercase tracking-widest text-emerald-400 mb-4 block">Testimoni</span>
+        <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl tracking-tight gradient-text mb-4">Kata Mereka</h2>
+        <p class="text-neutral-400 font-light max-w-xl mx-auto">Dari keluarga yang sudah mempercayakan momen terberat mereka kepada kami.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Testimonial 1 -->
+        <div class="reveal glass-panel rounded-xl p-6 hover:bg-white/[0.04] transition-colors duration-300">
+          <div class="flex gap-1 mb-4">
+            <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"></i>
+            <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"></i>
+            <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"></i>
+            <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"></i>
+            <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"></i>
+          </div>
+          <p class="text-sm text-neutral-300 font-light leading-relaxed mb-6">"Tim datang dalam 2 jam setelah kami telepon. Sangat sopan, pekerjaan rapi, dan yang paling penting — mereka bekerja dengan penuh penghormatan. Terima kasih banyak."</p>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-xs font-medium">BH</div>
+            <div>
+              <div class="text-sm font-medium">Budi Hartono</div>
+              <div class="text-[10px] text-neutral-500">TPU Pondok Ranggon, Jakarta Timur</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Testimonial 2 -->
+        <div class="reveal glass-panel rounded-xl p-6 hover:bg-white/[0.04] transition-colors duration-300" style="transition-delay:100ms;">
+          <div class="flex gap-1 mb-4">
+            <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"></i>
+            <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"></i>
+            <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"></i>
+            <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"></i>
+            <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"></i>
+          </div>
+          <p class="text-sm text-neutral-300 font-light leading-relaxed mb-6">"Saat ibu meninggal, kami benar-benar bingung harus menghubungi siapa. Alhamdulillah teman merekomendasikan JasaGaliKubur. Harga sesuai yang ditawarkan, tidak ada biaya tambahan."</p>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-xs font-medium">SA</div>
+            <div>
+              <div class="text-sm font-medium">Siti Aminah</div>
+              <div class="text-[10px] text-neutral-500">TPU Karawang, Bekasi Barat</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Testimonial 3 -->
+        <div class="reveal glass-panel rounded-xl p-6 hover:bg-white/[0.04] transition-colors duration-300" style="transition-delay:200ms;">
+          <div class="flex gap-1 mb-4">
+            <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"></i>
+            <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"></i>
+            <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"></i>
+            <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"></i>
+            <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"></i>
+          </div>
+          <p class="text-sm text-neutral-300 font-light leading-relaxed mb-6">"Kami pesan paket keluarga untuk makam 5 liang. Hasilnya sangat bagus, rapi, dan sesuai desain yang kami inginkan. Tim komunikatif dan profesional sepanjang proses."</p>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-xs font-medium">RW</div>
+            <div>
+              <div class="text-sm font-medium">Rudi Wijaya</div>
+              <div class="text-[10px] text-neutral-500">TPU Tanah Kusir, Jakarta Selatan</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ===== WILAYAH ===== -->
+  <section class="py-24 px-6 relative">
+    <div class="max-w-7xl mx-auto">
+      <div class="reveal glass-panel rounded-2xl p-8 md:p-12 relative overflow-hidden">
+        <!-- BG Glow -->
+        <div class="absolute -top-20 -right-20 w-60 h-60 bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center relative z-10">
+          <div>
+            <span class="text-[10px] font-medium uppercase tracking-widest text-emerald-400 mb-4 block">Area Layanan</span>
+            <h2 class="font-serif text-3xl sm:text-4xl tracking-tight gradient-text mb-4">Wilayah Kami Jangkau</h2>
+            <p class="text-sm text-neutral-400 font-light leading-relaxed mb-6">Kami melayani penggalian makam di seluruh wilayah Jabodetabek dan sekitarnya. Untuk wilayah luar, silakan hubungi kami untuk informasi ketersediaan.</p>
+            <a href="#kontak" class="inline-flex items-center gap-2 text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors">
+              <span>Wilayah Anda tidak tercantum? Hubungi kami</span>
+              <i data-lucide="arrow-right" class="w-3 h-3"></i>
+            </a>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="glass-panel rounded-lg p-3 text-center">
+              <div class="text-sm font-medium">Jakarta</div>
+              <div class="text-[10px] text-neutral-500 mt-0.5">Seluruh wilayah</div>
+            </div>
+            <div class="glass-panel rounded-lg p-3 text-center">
+              <div class="text-sm font-medium">Bekasi</div>
+              <div class="text-[10px] text-neutral-500 mt-0.5">Kota & Kabupaten</div>
+            </div>
+            <div class="glass-panel rounded-lg p-3 text-center">
+              <div class="text-sm font-medium">Depok</div>
+              <div class="text-[10px] text-neutral-500 mt-0.5">Seluruh wilayah</div>
+            </div>
+            <div class="glass-panel rounded-lg p-3 text-center">
+              <div class="text-sm font-medium">Tangerang</div>
+              <div class="text-[10px] text-neutral-500 mt-0.5">Kota & Kabupaten</div>
+            </div>
+            <div class="glass-panel rounded-lg p-3 text-center">
+              <div class="text-sm font-medium">Jawa</div>
+              <div class="text-[10px] text-neutral-500 mt-0.5">Seluruh wilayah</div>
+            </div>
+            <div class="glass-panel rounded-lg p-3 text-center">
+              <div class="text-sm font-medium">Karawang</div>
+              <div class="text-[10px] text-neutral-500 mt-0.5">Wilayah tertentu</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ===== FAQ ===== -->
+  <section id="faq" class="py-24 px-6 relative">
+    <div class="max-w-3xl mx-auto">
+      <div class="reveal text-center mb-16">
+        <span class="text-[10px] font-medium uppercase tracking-widest text-emerald-400 mb-4 block">FAQ</span>
+        <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl tracking-tight gradient-text mb-4">Pertanyaan Umum</h2>
+      </div>
+
+      <div class="space-y-3">
+        <!-- FAQ 1 -->
+        <div class="reveal faq-item glass-panel rounded-xl overflow-hidden">
+          <button class="faq-toggle w-full flex items-center justify-between p-5 text-left">
+            <span class="text-sm font-medium pr-4">Berapa lama waktu yang dibutuhkan untuk menggali satu kuburan?</span>
+            <i data-lucide="plus" class="w-4 h-4 text-neutral-500 flex-shrink-0 faq-icon transition-transform duration-300"></i>
+          </button>
+          <div class="faq-answer px-5">
+            <p class="text-sm text-neutral-400 font-light leading-relaxed pb-5">Untuk kuburan standar dengan kondisi tanah normal, penggalian biasanya selesai dalam 3-5 jam. Jika tanah keras, berbatu, atau butuh perkuatan dinding, bisa memakan waktu 6-8 jam. Kami akan memberikan estimasi yang akurat setelah survei lokasi.</p>
+          </div>
+        </div>
+
+        <!-- FAQ 2 -->
+        <div class="reveal faq-item glass-panel rounded-xl overflow-hidden" style="transition-delay:50ms;">
+          <button class="faq-toggle w-full flex items-center justify-between p-5 text-left">
+            <span class="text-sm font-medium pr-4">Apakah bisa dipanggil di malam hari atau hari libur?</span>
+            <i data-lucide="plus" class="w-4 h-4 text-neutral-500 flex-shrink-0 faq-icon transition-transform duration-300"></i>
+          </button>
+          <div class="faq-answer px-5">
+            <p class="text-sm text-neutral-400 font-light leading-relaxed pb-5">Ya, kami beroperasi 24 jam, 7 hari seminggu, termasuk hari libur nasional. Untuk panggilan malam hari, ada tambahan biaya operasional yang wajar. Silakan konfirmasi saat menghubungi kami.</p>
+          </div>
+        </div>
+
+        <!-- FAQ 3 -->
+        <div class="reveal faq-item glass-panel rounded-xl overflow-hidden" style="transition-delay:100ms;">
+          <button class="faq-toggle w-full flex items-center justify-between p-5 text-left">
+            <span class="text-sm font-medium pr-4">Apakah perlu izin khusus dari pengelola TPU?</span>
+            <i data-lucide="plus" class="w-4 h-4 text-neutral-500 flex-shrink-0 faq-icon transition-transform duration-300"></i>
+          </button>
+          <div class="faq-answer px-5">
+            <p class="text-sm text-neutral-400 font-light leading-relaxed pb-5">Ya, biasanya keluarga perlu mendapatkan izin resmi dari pengelola TPU terlebih dahulu (surat keterangan pemakaman). Kami bisa membantu mengarahkan prosedur pengurusan izin ini, namun dokumen tetap diajukan oleh keluarga.</p>
+          </div>
+        </div>
+
+        <!-- FAQ 4 -->
+        <div class="reveal faq-item glass-panel rounded-xl overflow-hidden" style="transition-delay:150ms;">
+          <button class="faq-toggle w-full flex items-center justify-between p-5 text-left">
+            <span class="text-sm font-medium pr-4">Bagaimana jika tanah di lokasi sangat keras atau berbatu?</span>
+            <i data-lucide="plus" class="w-4 h-4 text-neutral-500 flex-shrink-0 faq-icon transition-transform duration-300"></i>
+          </button>
+          <div class="faq-answer px-5">
+            <p class="text-sm text-neutral-400 font-light leading-relaxed pb-5">Kami membawa peralatan yang sesuai untuk berbagai kondisi tanah, termasuk palu godam, bor tanah manual, dan jika diperlukan, kami bisa menyewakan alat berat kecil. Biaya tambahan akan dikomunikasikan terlebih dahulu sebelum pekerjaan dimulai.</p>
+          </div>
+        </div>
+
+        <!-- FAQ 5 -->
+        <div class="reveal faq-item glass-panel rounded-xl overflow-hidden" style="transition-delay:200ms;">
+          <button class="faq-toggle w-full flex items-center justify-between p-5 text-left">
+            <span class="text-sm font-medium pr-4">Apakah ada garansi pekerjaan?</span>
+            <i data-lucide="plus" class="w-4 h-4 text-neutral-500 flex-shrink-0 faq-icon transition-transform duration-300"></i>
+          </button>
+          <div class="faq-answer px-5">
+            <p class="text-sm text-neutral-400 font-light leading-relaxed pb-5">Ya, kami memberikan garansi struktur untuk pekerjaan perkuatan dinding selama 6 bulan. Jika terjadi kerusakan struktural dalam periode tersebut karena kesalahan pengerjaan, kami akan memperbaikinya tanpa biaya tambahan.</p>
+          </div>
+        </div>
+
+        <!-- FAQ 6 -->
+        <div class="reveal faq-item glass-panel rounded-xl overflow-hidden" style="transition-delay:250ms;">
+          <button class="faq-toggle w-full flex items-center justify-between p-5 text-left">
+            <span class="text-sm font-medium pr-4">Bagaimana sistem pembayarannya?</span>
+            <i data-lucide="plus" class="w-4 h-4 text-neutral-500 flex-shrink-0 faq-icon transition-transform duration-300"></i>
+          </button>
+          <div class="faq-answer px-5">
+            <p class="text-sm text-neutral-400 font-light leading-relaxed pb-5">Pembayaran bisa dilakukan secara tunai atau transfer setelah pekerjaan selesai dan serah terima dilakukan. Untuk paket keluarga besar, kami menerima DP 30% di awal dan pelunasan di akhir. Kami tidak meminta pembayaran penuh di muka.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ===== KONTAK / CTA ===== -->
+  <section id="kontak" class="py-24 px-6 relative">
+    <div class="max-w-7xl mx-auto">
+      <div class="reveal glass-panel rounded-2xl p-8 md:p-12 relative overflow-hidden">
+        <!-- BG Glows -->
+        <div class="absolute -bottom-20 -left-20 w-60 h-60 bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div class="absolute -top-20 -right-20 w-40 h-40 bg-teal-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 relative z-10">
+          <!-- Left - Info -->
+          <div>
+            <span class="text-[10px] font-medium uppercase tracking-widest text-emerald-400 mb-4 block">Hubungi Kami</span>
+            <h2 class="font-serif text-3xl sm:text-4xl tracking-tight gradient-text mb-4">Kami Siap<br><span class="italic font-light text-neutral-500">Membantu Anda</span></h2>
+            <p class="text-sm text-neutral-400 font-light leading-relaxed mb-8">Jangan ragu untuk menghubungi kami kapan saja. Kami memahami situasi Anda dan siap merespons dengan cepat.</p>
+
+            <div class="space-y-5">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                  <i data-lucide="phone" class="w-4 h-4 text-emerald-400"></i>
+                </div>
+                <div>
+                  <div class="text-[10px] uppercase tracking-widest text-neutral-500 mb-0.5">Telepon / WhatsApp</div>
+                  <a href="tel:+6281234567890" class="text-sm font-medium hover:text-emerald-400 transition-colors">0812-3456-7890</a>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                  <i data-lucide="mail" class="w-4 h-4 text-emerald-400"></i>
+                </div>
+                <div>
+                  <div class="text-[10px] uppercase tracking-widest text-neutral-500 mb-0.5">Email</div>
+                  <a href="mailto:info@jasagalikubur.id" class="text-sm font-medium hover:text-emerald-400 transition-colors">info@jasagalikubur.id</a>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                  <i data-lucide="map-pin" class="w-4 h-4 text-emerald-400"></i>
+                </div>
+                <div>
+                  <div class="text-[10px] uppercase tracking-widest text-neutral-500 mb-0.5">Basis Operasi</div>
+                  <span class="text-sm font-medium">Jakarta Timur, Indonesia</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- WhatsApp quick button -->
+            <a href="https://wa.me/6281234567890?text=Halo%2C%20saya%20ingin%20konsultasi%20tentang%20jasa%20penggalian%20kubur." target="_blank" class="mt-8 inline-flex items-center gap-2 bg-[#25D366] text-white text-xs font-medium px-5 py-3 rounded-full hover:bg-[#20bd5a] transition-colors duration-150">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Chat WhatsApp Sekarang
+            </a>
+          </div>
+
+          <!-- Right - Form -->
+          <div>
+            <form id="contactForm" class="space-y-4">
+              <div>
+                <label class="text-[10px] uppercase tracking-widest text-neutral-500 mb-1.5 block">Nama Lengkap</label>
+                <input type="text" name="nama" required placeholder="Masukkan nama Anda" class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.05] transition-all duration-200">
+              </div>
+              <div>
+                <label class="text-[10px] uppercase tracking-widest text-neutral-500 mb-1.5 block">Nomor Telepon</label>
+                <input type="tel" name="telepon" required placeholder="08xx-xxxx-xxxx" class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.05] transition-all duration-200">
+              </div>
+              <div>
+                <label class="text-[10px] uppercase tracking-widest text-neutral-500 mb-1.5 block">Lokasi TPU</label>
+                <input type="text" name="lokasi" placeholder="Nama TPU dan kota" class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.05] transition-all duration-200">
+              </div>
+              <div>
+                <label class="text-[10px] uppercase tracking-widest text-neutral-500 mb-1.5 block">Jenis Layanan</label>
+                <select name="layanan" class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-neutral-400 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.05] transition-all duration-200 appearance-none" style="background-image:url('data:image/svg+xml;utf8,<svg fill=\'%23737373\' viewBox=\'0 0 24 24\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M7 10l5 5 5-5z\'/></svg>');background-repeat:no-repeat;background-position:right 12px center;background-size:18px;">
+                  <option value="">Pilih jenis layanan</option>
+                  <option value="galian-baru">Penggalian Kubur Baru</option>
+                  <option value="bongkar">Pembongkaran & Galian Ulang</option>
+                  <option value="keluarga">Paket Keluarga</option>
+                  <option value="darurat">Layanan Darurat</option>
+                  <option value="lainnya">Lainnya</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[10px] uppercase tracking-widest text-neutral-500 mb-1.5 block">Keterangan Tambahan</label>
+                <textarea name="keterangan" rows="3" placeholder="Jelaskan kebutuhan Anda (opsional)" class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.05] transition-all duration-200 resize-none"></textarea>
+              </div>
+              <button type="submit" class="w-full inline-flex items-center justify-center gap-2 bg-white text-black text-xs font-medium px-6 py-3 rounded-full hover:bg-neutral-200 transition-colors duration-150">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                Kirim Permintaan
+              </button>
+              <p class="text-[10px] text-neutral-600 text-center">Kami akan merespons dalam waktu maksimal 30 menit</p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="py-12 px-6 border-t border-white/[0.05]">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+        <!-- Brand -->
+        <div>
+          <a href="#" class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+              <i data-lucide="trees" class="w-4 h-4 text-emerald-400"></i>
+            </div>
+            <span class="text-sm font-semibold tracking-wide">JasaGaliKubur</span>
+          </a>
+          <p class="text-xs text-neutral-500 font-light leading-relaxed max-w-xs">Layanan penggalian makam profesional dan terpercaya. Hadir dengan penuh penghormatan di saat keluarga membutuhkan.</p>
+        </div>
+
+        <!-- Quick Links -->
+        <div>
+          <div class="text-[10px] font-medium uppercase tracking-widest text-neutral-500 mb-4">Navigasi</div>
+          <div class="space-y-2">
+            <a href="#layanan" class="block text-sm text-neutral-400 hover:text-white transition-colors">Layanan</a>
+            <a href="#alur" class="block text-sm text-neutral-400 hover:text-white transition-colors">Alur Kerja</a>
+            <a href="#harga" class="block text-sm text-neutral-400 hover:text-white transition-colors">Harga</a>
+            <a href="#testimoni" class="block text-sm text-neutral-400 hover:text-white transition-colors">Testimoni</a>
+            <a href="#faq" class="block text-sm text-neutral-400 hover:text-white transition-colors">FAQ</a>
+          </div>
+        </div>
+
+        <!-- Contact -->
+        <div>
+          <div class="text-[10px] font-medium uppercase tracking-widest text-neutral-500 mb-4">Kontak</div>
+          <div class="space-y-2">
+            <a href="tel:+6281234567890" class="flex items-center gap-2 text-sm text-neutral-400 hover:text-white transition-colors">
+              <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+              0812-3456-7890
+            </a>
+            <a href="mailto:info@jasagalikubur.id" class="flex items-center gap-2 text-sm text-neutral-400 hover:text-white transition-colors">
+              <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+              info@jasagalikubur.id
+            </a>
+            <span class="flex items-center gap-2 text-sm text-neutral-400">
+              <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+              Jakarta Timur
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-white/[0.05] pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-[10px] text-neutral-600">© 2025 JasaGaliKubur. Semua hak dilindungi.</p>
+        <p class="text-[10px] text-neutral-600">Dibuat dengan <span class="text-emerald-500">♥</span> dan penghormatan</p>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ===== TOAST ===== -->
+  <div id="toast" class="toast">
+    <div class="flex items-center gap-3">
+      <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400"></i>
+      <div>
+        <div class="text-sm font-medium">Pesan Terkirim!</div>
+        <div class="text-xs text-neutral-400">Kami akan segera menghubungi Anda.</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ===== FLOATING WhatsApp BUTTON ===== -->
+  <a href="https://wa.me/6281234567890?text=Halo%2C%20saya%20ingin%20konsultasi%20tentang%20jasa%20penggalian%20kubur." target="_blank" class="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full bg-[#25D366] flex items-center justify-center shadow-lg shadow-[#25D366]/20 hover:scale-110 transition-transform duration-200">
+    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  </a>
+
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // ===== Mobile Menu Toggle =====
+    const mobileToggle = document.getElementById('mobileToggle');
+    const mobileMenu = document.getElementById('mobileMenu');
+    mobileToggle.addEventListener('click', () => {
+      mobileMenu.classList.toggle('open');
+    });
+    // Close mobile menu on link click
+    mobileMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => mobileMenu.classList.remove('open'));
+    });
+
+    // ===== Scroll Reveal =====
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // ===== Counter Animation =====
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const target = parseInt(el.dataset.target);
+          const duration = 2000;
+          const start = performance.now();
+
+          function update(now) {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.round(eased * target).toLocaleString('id-ID') + (target >= 50 ? '+' : '+');
+            if (progress < 1) requestAnimationFrame(update);
+          }
+          requestAnimationFrame(update);
+          counterObserver.unobserve(el);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('.counter').forEach(el => counterObserver.observe(el));
+
+    // ===== FAQ Accordion =====
+    document.querySelectorAll('.faq-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = btn.closest('.faq-item');
+        const answer = item.querySelector('.faq-answer');
+        const icon = btn.querySelector('.faq-icon');
+        const isOpen = answer.classList.contains('open');
+
+        // Close all
+        document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('open'));
+        document.querySelectorAll('.faq-icon').forEach(i => {
+          i.style.transform = 'rotate(0deg)';
+        });
+
+        // Open clicked (if was closed)
+        if (!isOpen) {
+          answer.classList.add('open');
+          icon.style.transform = 'rotate(45deg)';
+        }
+      });
+    });
+
+    // ===== Contact Form =====
+    document.getElementById('contactForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      e.target.reset();
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    });
+
+    // ===== Navbar background on scroll =====
+    const nav = document.querySelector('nav');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 100) {
+        nav.style.opacity = '0.98';
+      } else {
+        nav.style.opacity = '1';
+      }
+    });
+  </script>
+</body>
+</html>
